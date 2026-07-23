@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>夏休み大作戦</title>
+<style>
+:root{
+  --bg:#0A1628;--surface:#142240;--surface2:#1A2D52;
+  --gold:#FFD166;--gold-dim:#3D2E00;
+  --green:#06D6A0;--green-dim:#003D2C;
+  --red:#EF476F;--red-dim:#3D0017;
+  --orange:#FF9F43;--orange-dim:#3D2000;
+  --blue:#4CC9F0;
+  --text:#E8F0FF;--text-sub:#7A90BB;--border:#1E3160;
+  --radius:16px;
+  --st:env(safe-area-inset-top);--sb:env(safe-area-inset-bottom);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:-apple-system,'Hiragino Sans',sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;padding-top:calc(var(--st));padding-bottom:calc(var(--sb) + 80px);
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+.layer{position:relative;z-index:1;}
+.nav-bar{display:flex;border-bottom:1px solid var(--border);
+  background:rgba(10,22,40,0.95);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  position:sticky;top:0;z-index:100;padding-top:calc(var(--st));}
+.nav-tab{flex:1;padding:12px 2px 10px;text-align:center;font-size:10px;font-weight:700;
+  color:var(--text-sub);border:none;background:none;cursor:pointer;
+  border-bottom:2px solid transparent;-webkit-appearance:none;font-family:inherit;}
+.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.nav-icon{font-size:18px;display:block;margin-bottom:2px;}
+.tab{display:none;padding:14px 12px;}
+.tab.active{display:block;}
+.card{background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:12px;border:1px solid var(--border);}
+.today-hd{background:linear-gradient(135deg,#0F2A5E,#0A1628);border-radius:var(--radius);
+  padding:18px 14px;margin-bottom:12px;border:1px solid #1E3F80;}
+.today-date{font-size:12px;color:var(--text-sub);margin-bottom:3px;}
+.today-title{font-size:22px;font-weight:900;color:var(--text);margin-bottom:10px;}
+.cd-row{display:flex;gap:8px;}
+.cd-item{background:rgba(255,209,102,0.12);border:1px solid var(--gold-dim);
+  border-radius:10px;padding:8px;text-align:center;flex:1;}
+.cd-num{font-size:24px;font-weight:900;color:var(--gold);line-height:1;}
+.cd-label{font-size:9px;color:var(--text-sub);margin-top:2px;}
+.club-banner{border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;
+  display:flex;align-items:flex-start;gap:10px;}
+.club-banner.has-club{background:var(--orange-dim);border:1px solid var(--orange);}
+.club-banner.no-club{background:var(--green-dim);border:1px solid var(--green);}
+.cb-icon{font-size:24px;flex-shrink:0;}
+.cb-title{font-size:13px;font-weight:800;}
+.has-club .cb-title{color:var(--orange);}
+.no-club .cb-title{color:var(--green);}
+.cb-sub{font-size:11px;color:var(--text-sub);margin-top:2px;line-height:1.5;}
+.streak{background:linear-gradient(135deg,var(--gold-dim),#2A1A00);
+  border:1px solid var(--gold);border-radius:var(--radius);
+  padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.s-num{font-size:20px;font-weight:900;color:var(--gold);}
+.s-label{font-size:11px;color:var(--text-sub);}
+.sec-title{font-size:11px;font-weight:700;color:var(--text-sub);
+  text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;}
+.mission-card{background:var(--surface);border-radius:14px;padding:12px;
+  margin-bottom:8px;border:1px solid var(--border);cursor:pointer;}
+.mission-card.urg-red{border-color:var(--red);}
+.mission-card.urg-orange{border-color:var(--orange);}
+.mc-subj{font-size:10px;font-weight:700;color:var(--text-sub);margin-bottom:2px;}
+.mc-name{font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px;line-height:1.4;}
+.mc-meta{font-size:11px;color:var(--text-sub);}
+.utag{font-size:10px;font-weight:800;padding:1px 7px;border-radius:10px;display:inline-block;margin-left:4px;}
+.utag.red{background:var(--red-dim);color:var(--red);}
+.utag.orange{background:var(--orange-dim);color:var(--orange);}
+.pb{margin-top:6px;}
+.pb-bg{background:var(--border);border-radius:3px;height:5px;overflow:hidden;}
+.pb-fill{height:100%;border-radius:3px;}
+.pb-fill.green{background:linear-gradient(90deg,var(--green),#00B8FF);}
+.pb-fill.orange{background:linear-gradient(90deg,var(--orange),var(--gold));}
+.pb-fill.red{background:linear-gradient(90deg,var(--red),var(--orange));}
+.pb-text{font-size:10px;color:var(--text-sub);margin-top:3px;display:flex;justify-content:space-between;}
+.cal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.cal-month{font-size:17px;font-weight:800;}
+.cal-nav{background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:6px 12px;font-size:14px;cursor:pointer;-webkit-appearance:none;min-height:36px;font-family:inherit;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.cal-dow{text-align:center;font-size:10px;font-weight:700;color:var(--text-sub);padding:4px 0;}
+.cal-day{aspect-ratio:1;border-radius:7px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;cursor:pointer;position:relative;
+  background:var(--surface);border:1px solid transparent;}
+.cal-day.other{opacity:0.2;}
+.cal-day.is-today{border-color:var(--blue);color:var(--blue);}
+.cal-day.has-dl{background:rgba(239,71,111,0.18);border-color:var(--red);}
+.cal-day.has-club{background:rgba(255,159,67,0.15);border-color:var(--orange);}
+.cal-day.both{background:linear-gradient(135deg,rgba(239,71,111,0.2),rgba(255,159,67,0.15));border-color:var(--red);}
+.cal-day.summer{background:rgba(255,209,102,0.05);}
+.cal-dn{font-size:12px;font-weight:700;}
+.cal-dots{display:flex;gap:2px;margin-top:1px;}
+.cal-dot{width:4px;height:4px;border-radius:50%;}
+.cal-legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+.leg{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text-sub);}
+.leg-dot{width:7px;height:7px;border-radius:50%;}
+.day-detail{background:var(--surface2);border-radius:12px;padding:12px;margin-top:10px;display:none;}
+.day-detail.show{display:block;}
+.dd-title{font-size:13px;font-weight:800;color:var(--gold);margin-bottom:8px;}
+.dd-ev{font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:7px;align-items:flex-start;}
+.dd-ev:last-child{border-bottom:none;}
+.dd-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.subj-sec{margin-bottom:18px;}
+.subj-hd{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.subj-name{font-size:15px;font-weight:900;}
+.subj-badge{font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;}
+.badge-done{background:var(--green-dim);color:var(--green);}
+.badge-prog{background:var(--orange-dim);color:var(--orange);}
+.badge-new{background:var(--red-dim);color:var(--red);}
+.task-card{background:var(--surface);border-radius:12px;padding:12px;
+  margin-bottom:7px;border:1px solid var(--border);}
+.task-card.done-c{opacity:0.5;border-color:var(--green-dim);}
+.task-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:8px;}
+.task-name{font-size:13px;font-weight:800;line-height:1.4;}
+.task-dl{font-size:10px;color:var(--text-sub);white-space:nowrap;}
+.task-note{font-size:11px;color:var(--text-sub);margin-bottom:8px;line-height:1.5;}
+.steps-wrap{display:flex;flex-direction:column;gap:5px;}
+.step-item{display:flex;align-items:center;gap:8px;padding:7px 9px;
+  border-radius:9px;cursor:pointer;background:var(--surface2);border:1px solid var(--border);}
+.step-item.sdone{background:var(--green-dim);border-color:var(--green);}
+.step-chk{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.step-item.sdone .step-chk{background:var(--green);border-color:var(--green);}
+.step-lbl{font-size:12px;font-weight:600;}
+.step-item.sdone .step-lbl{color:var(--text-sub);text-decoration:line-through;}
+.pg-row{display:flex;align-items:center;gap:6px;margin-top:6px;}
+.pg-lbl{font-size:11px;color:var(--text-sub);white-space:nowrap;}
+.pg-in{background:var(--surface2);border:1px solid var(--border);border-radius:7px;
+  color:var(--text);font-size:15px;padding:7px 8px;width:70px;text-align:center;
+  -webkit-appearance:none;outline:none;font-family:inherit;}
+.pg-in:focus{border-color:var(--blue);}
+.pg-btn{background:var(--blue);color:#000;border:none;border-radius:7px;
+  padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;
+  -webkit-appearance:none;min-height:36px;font-family:inherit;}
+.pg-hint{font-size:11px;color:var(--blue);margin-top:5px;font-weight:600;}
+.smart-hint{background:linear-gradient(135deg,rgba(6,214,160,0.12),rgba(76,201,240,0.08));
+  border:1px solid rgba(6,214,160,0.3);border-radius:10px;
+  padding:8px 10px;margin-top:7px;font-size:12px;color:var(--green);
+  font-weight:600;line-height:1.7;}
+.done-toggle{display:flex;align-items:center;gap:8px;padding:9px;
+  background:var(--surface2);border-radius:9px;cursor:pointer;border:1px solid var(--border);}
+.done-toggle.on{background:var(--green-dim);border-color:var(--green);}
+.dt-icon{font-size:18px;}
+.dt-lbl{font-size:12px;font-weight:700;}
+.link-btn{display:block;width:100%;padding:12px;border-radius:10px;
+  background:linear-gradient(135deg,#1D4ED8,#2563EB);color:#fff;
+  text-align:center;font-size:14px;font-weight:800;text-decoration:none;
+  margin-bottom:8px;border:none;cursor:pointer;font-family:inherit;
+  -webkit-appearance:none;min-height:46px;letter-spacing:0.3px;}
+.link-btn:active{opacity:0.85;}
+.link-steps-done{display:flex;flex-direction:column;gap:5px;margin-top:8px;}
+.rpt-wrap{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;margin-bottom:12px;}
+.rpt-hd{background:linear-gradient(135deg,#0F2A5E,#1A0A3D);padding:14px;border-bottom:1px solid var(--border);}
+.rpt-hd-date{font-size:11px;color:var(--text-sub);margin-bottom:2px;}
+.rpt-hd-title{font-size:17px;font-weight:900;color:var(--gold);}
+.rpt-hd-sub{font-size:11px;color:var(--text-sub);margin-top:3px;}
+.rpt-sec{padding:12px 14px;border-bottom:1px solid var(--border);}
+.rpt-sec:last-child{border-bottom:none;}
+.rpt-sec-lbl{font-size:10px;font-weight:800;color:var(--text-sub);
+  text-transform:uppercase;letter-spacing:0.6px;margin-bottom:8px;}
+.rpt-done-item{display:flex;align-items:flex-start;gap:7px;padding:5px 0;
+  border-bottom:1px solid var(--border);font-size:12px;}
+.rpt-done-item:last-child{border-bottom:none;}
+.rpt-rem-item{padding:7px 0;border-bottom:1px solid var(--border);}
+.rpt-rem-item:last-child{border-bottom:none;}
+.rpt-rem-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:3px;}
+.rpt-rem-name{font-size:12px;font-weight:700;line-height:1.4;}
+.rpt-rem-dl{font-size:10px;font-weight:700;white-space:nowrap;padding-top:1px;}
+.rpt-rem-detail{font-size:11px;color:var(--text-sub);margin-top:2px;}
+.rpt-perday{display:inline-block;background:rgba(76,201,240,0.18);color:var(--blue);
+  font-size:10px;font-weight:800;padding:2px 8px;border-radius:8px;margin-top:3px;}
+.rpt-steps{margin-top:3px;}
+.rpt-stag{display:inline-block;font-size:10px;background:var(--surface2);color:var(--text-sub);
+  border:1px solid var(--border);border-radius:5px;padding:2px 6px;margin:2px 2px 2px 0;}
+.rpt-stag.next{background:rgba(255,209,102,0.15);color:var(--gold);border-color:var(--gold-dim);}
+.rpt-none{font-size:12px;color:var(--text-sub);padding:3px 0;}
+.line-hint{background:linear-gradient(135deg,#003D1A,#001A0A);border:1px solid #00B900;
+  border-radius:var(--radius);padding:14px;text-align:center;margin-bottom:12px;}
+.line-icon{font-size:28px;margin-bottom:6px;}
+.line-text{font-size:14px;font-weight:800;color:#00E033;margin-bottom:3px;}
+.line-sub{font-size:11px;color:var(--text-sub);}
+.toast{position:fixed;bottom:calc(var(--sb) + 86px);left:12px;right:12px;
+  background:var(--surface2);border:1px solid var(--border);color:var(--text);
+  padding:12px 14px;border-radius:var(--radius);font-size:13px;font-weight:700;
+  text-align:center;z-index:800;transform:translateY(120px);transition:transform 0.3s ease;pointer-events:none;}
+.toast.show{transform:translateY(0);}
+.cov{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);
+  z-index:1000;-webkit-box-align:center;align-items:center;justify-content:center;flex-direction:column;}
+.cov.show{display:-webkit-flex;display:flex;}
+.cov-box{text-align:center;}
+.cov-stars{font-size:36px;letter-spacing:4px;margin-bottom:10px;}
+.cov-text{font-size:24px;font-weight:900;color:var(--gold);margin-bottom:4px;}
+.cov-sub{font-size:13px;color:var(--text-sub);margin-bottom:16px;}
+.cov-btn{background:var(--gold);color:#1A1000;border:none;border-radius:12px;
+  padding:12px 26px;font-size:15px;font-weight:800;cursor:pointer;-webkit-appearance:none;font-family:inherit;}
+.pt-pop{position:fixed;left:50%;-webkit-transform:translateX(-50%);transform:translateX(-50%);
+  background:var(--gold);color:#1A1000;font-size:14px;font-weight:900;
+  padding:7px 18px;border-radius:18px;z-index:900;pointer-events:none;
+  -webkit-animation:ptF 1.4s ease forwards;animation:ptF 1.4s ease forwards;}
+@-webkit-keyframes ptF{0%{bottom:120px;opacity:1;}100%{bottom:190px;opacity:0;}}
+@keyframes ptF{0%{bottom:120px;opacity:1;}100%{bottom:190px;opacity:0;}}
+.empty{text-align:center;color:var(--text-sub);font-size:13px;padding:20px 0;}
+</style>
+</head>
+<body>
+<canvas id="SC"></canvas>
+<nav class="nav-bar layer">
+  <button class="nav-tab active" id="nt0"><span class="nav-icon">🌙</span>今日</button>
+  <button class="nav-tab" id="nt1"><span class="nav-icon">📅</span>カレンダー</button>
+  <button class="nav-tab" id="nt2"><span class="nav-icon">⭐</span>ミッション</button>
+  <button class="nav-tab" id="nt3"><span class="nav-icon">📸</span>報告</button>
+</nav>
+<div class="tab active layer" id="t0"><div id="todayContent"></div></div>
+<div class="tab layer" id="t1"><div id="calContent"></div></div>
+<div class="tab layer" id="t2"><div id="missionContent"></div></div>
+<div class="tab layer" id="t3"><div id="reportContent"></div></div>
+<div class="cov" id="cov">
+  <div class="cov-box">
+    <div class="cov-stars" id="covStars">⭐⭐⭐</div>
+    <div class="cov-text" id="covText">完了！</div>
+    <div class="cov-sub" id="covSub"></div>
+    <button class="cov-btn" id="covBtn">やったー！</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var EXAM = '2026-09-01';
+var S_START = '2026-07-18';
+var S_END = '2026-08-31';
+var CLUBS = {
+  '2026-07-08':{t:'13:00〜17:00',n:'弁当持参'},
+  '2026-07-10':{t:'13:00〜16:00',n:''},
+  '2026-07-15':{t:'13:00〜17:30〜',n:'夕涼み会演奏'},
+  '2026-07-17':{t:'13:00〜16:00',n:''},
+  '2026-07-22':{t:'9:00〜12:00',n:''},
+  '2026-07-24':{t:'9:00〜12:00',n:''},
+  '2026-07-27':{t:'9:00〜12:00',n:''},
+  '2026-07-29':{t:'9:00〜12:00',n:''},
+  '2026-07-31':{t:'9:00〜12:00',n:''},
+  '2026-08-03':{t:'9:00〜12:00',n:''},
+  '2026-08-05':{t:'9:00〜12:00',n:''},
+  '2026-08-07':{t:'8:00〜',n:'校内合宿（予定）'},
+  '2026-08-08':{t:'〜16:00',n:'校内合宿（予定）'},
+  '2026-08-21':{t:'9:00〜12:00',n:''},
+  '2026-08-24':{t:'9:00〜12:00',n:''},
+  '2026-08-28':{t:'9:00〜12:00',n:'課題完成期限と同日！'},
+  '2026-08-31':{t:'9:00〜12:00',n:''}
+};
+var EVTS = [
+  {d:'2026-07-17',l:'終業式・LHR',c:'gold'},
+  {d:'2026-07-18',l:'夏期講習I-1',c:'blue'},
+  {d:'2026-07-19',l:'夏期講習I-2',c:'blue'},
+  {d:'2026-07-20',l:'夏期講習I-3',c:'blue'},
+  {d:'2026-08-04',l:'課題確認（指名制）',c:'red'},
+  {d:'2026-08-05',l:'課題確認（指名制）',c:'red'},
+  {d:'2026-08-11',l:'山の日',c:'green'},
+  {d:'2026-08-23',l:'スタディサプリ配信',c:'blue'},
+  {d:'2026-08-24',l:'社会・地図 発送締切！',c:'red'},
+  {d:'2026-08-25',l:'夏期講座（補習）II-1',c:'blue'},
+  {d:'2026-08-26',l:'夏期講座（補習）II-2',c:'blue'},
+  {d:'2026-08-27',l:'夏期講座（補習）II-3',c:'blue'},
+  {d:'2026-08-28',l:'全課題完成期限！',c:'red'},
+  {d:'2026-09-01',l:'始業式・書写提出',c:'gold'},
+  {d:'2026-09-02',l:'英語テキスト提出',c:'red'}
+];
+var MSNS = [
+  {id:'jp-calli',subj:'国語',name:'書写「天空の紅」',type:'steps',dl:'2026-09-01',dll:'9/1 始業式',
+   steps:['練習（下書き）','本番の清書','完成・提出準備'],note:'半紙1枚、ペン書き必須'},
+  {id:'jp-txt',subj:'国語',name:'徹底演習テキスト',type:'pages',dl:'2026-09-01',dll:'夏休み明け初回授業',
+   sp:30,ep:105,note:'P.30〜51＋P.80〜105、漢字・語句トレーニングも必須',
+   ranges:[{s:30,e:51},{s:80,e:105}]},
+  {id:'jp-exam',subj:'国語',name:'学力推移調査・過去問',type:'steps',dl:'2026-09-01',dll:'夏休み明け初回授業',
+   steps:['学校サイトから問題プリントアウト','解く','答え合わせ・点数記入'],note:'外部模試過去問（9月分）'},
+  {id:'jp-essay',subj:'国語',name:'「小さな親切」作文',type:'steps',dl:'2026-09-01',dll:'夏休み明け初回授業',
+   steps:['テーマ・内容を考える','下書き','清書（原稿用紙2〜3枚）','ホッチキス留め'],note:'AI使用禁止'},
+  {id:'soc-map',subj:'社会',name:'環境地図作品制作',type:'steps',dl:'2026-08-24',dll:'8/24 学校から発送',
+   steps:['テーマ決め','調査・資料集め','地図制作','応募票を貼る','完成'],note:'個人制作のみ'},
+  {id:'math-pre',subj:'数学',name:'ニュープリペア p.40〜43',type:'pages',dl:'2026-09-01',dll:'夏休み明け初回代数授業',
+   ranges:[{s:40,e:43}],note:'数学へのニュープリペア'},
+  {id:'math-exam',subj:'数学',name:'学力推移調査・過去問（代数）',type:'steps',dl:'2026-09-01',dll:'夏休み明け初回代数授業',
+   steps:['問題プリントアウト','解答用紙に解く','丸付け'],note:'大問4と大問6の2題'},
+  {id:'math-geo',subj:'数学',name:'幾何問題集 p.47〜51',type:'pages',dl:'2026-09-01',dll:'夏休み明け初回幾何授業',
+   ranges:[{s:47,e:51}],note:'幾何87〜95'},
+  {id:'eng-txt',subj:'英語',name:'英文法完成BOOK1（p24〜p111）',type:'pages',dl:'2026-09-02',dll:'9/2（水）授業で回収',
+   ranges:[{s:24,e:111}],note:'1日4P→約22日間。冬休みの課題にもなるのでなくさないこと！'},
+  {id:'eng-sap',subj:'英語',name:'スタディサプリ配信課題',type:'steps',dl:'2026-09-02',dll:'9/2まで',
+   steps:['7/5配信分を取り組む','8/23配信分を取り組む'],note:'英検対策にもなる'},
+  {id:'mus-news',subj:'音楽',name:'「日本の祭り」新聞作り',type:'steps',dl:'2026-09-01',dll:'2学期初回授業',
+   steps:['祭り・芸能を決める','調べる','新聞を書く（ペン書き）','完成'],note:'丸写し禁止・AI禁止'},
+  {id:'art-file',subj:'美術',name:'美術ファイル（レタリング・墨入れ）',type:'done',dl:'2026-09-01',dll:'2学期初回授業に持参',
+   note:'未完了部分を夏休み中に完了'},
+  {id:'tech-grow',subj:'技術',name:'栽培記録（3回）',type:'steps',dl:'2026-08-20',dll:'8月中旬まで',
+   steps:['7月中旬：記録＋写真','8月上旬：記録＋写真','8月中旬：記録＋写真'],note:'栽培記録用紙に記入'},
+  {id:'mor-vid',subj:'道徳',name:'Inspire High視聴（3本）',type:'steps',dl:'2026-08-31',dll:'夏休み中（提出不要）',
+   steps:['1本目を見てワーク入力','2本目を見てワーク入力','3本目を見てワーク入力'],note:'各1時間程度、提出不要'},
+  // ── 英語たんけん隊 メインミッション（Lesson 1〜4）──
+  {id:'et-l1a',subj:'英語たんけん隊',name:'Lesson 1-A（単語1〜15）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L1-A: America〜call（15語）'},
+  {id:'et-l1b',subj:'英語たんけん隊',name:'Lesson 1-B（単語16〜30）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L1-B: me〜yes（15語）'},
+  {id:'et-l1c',subj:'英語たんけん隊',name:'Lesson 1-C（単語31〜45）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L1-C: Mr.〜it（15語）'},
+  {id:'et-l1d',subj:'英語たんけん隊',name:'Lesson 1-D（単語46〜51）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L1-D: sister〜year（6語）'},
+  {id:'et-l2a',subj:'英語たんけん隊',name:'Lesson 2-A（単語1〜15）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L2-A: old〜Beijing（15語）'},
+  {id:'et-l2b',subj:'英語たんけん隊',name:'Lesson 2-B（単語16〜30）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L2-B: Paris〜office worker（15語）'},
+  {id:'et-l2c',subj:'英語たんけん隊',name:'Lesson 2-C（単語31〜45）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L2-C: vet〜friend（15語）'},
+  {id:'et-l2d',subj:'英語たんけん隊',name:'Lesson 2-D（単語46〜60）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L2-D: his〜eggplant（15語）'},
+  {id:'et-l2e',subj:'英語たんけん隊',name:'Lesson 2-E（単語61〜75）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L2-E: tall〜lady（15語）'},
+  {id:'et-l2f',subj:'英語たんけん隊',name:'Lesson 2-F（単語76〜90）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L2-F: who〜on（15語）'},
+  {id:'et-l2g',subj:'英語たんけん隊',name:'Lesson 2-G（単語91〜105）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L2-G: New Year〜grandfather（15語）'},
+  {id:'et-l2h',subj:'英語たんけん隊',name:'Lesson 2-H（単語106〜109）',type:'link',dl:'2026-08-24',dll:'8/24目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L2-H: grandmother〜mom（4語）'},
+  {id:'et-l3a',subj:'英語たんけん隊',name:'Lesson 3-A（単語1〜15）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L3-A: cousin〜soccer（15語）'},
+  {id:'et-l3b',subj:'英語たんけん隊',name:'Lesson 3-B（単語16〜30）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L3-B: basketball〜party（15語）'},
+  {id:'et-l3c',subj:'英語たんけん隊',name:'Lesson 3-C（単語31〜45）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L3-C: American〜need（15語）'},
+  {id:'et-l3d',subj:'英語たんけん隊',name:'Lesson 3-D（単語46〜60）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L3-D: dish〜talk（15語）'},
+  {id:'et-l3e',subj:'英語たんけん隊',name:'Lesson 3-E（単語61〜75）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L3-E: them〜coat（15語）'},
+  {id:'et-l3f',subj:'英語たんけん隊',name:'Lesson 3-F（単語76〜86）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L3-F: know〜roll（11語）'},
+  {id:'et-l3x1',subj:'英語たんけん隊',name:'Lesson 3続き-A（単語1〜15）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L3続き-A: seaweed〜dear（15語）'},
+  {id:'et-l3x2',subj:'英語たんけん隊',name:'Lesson 3続き-B（単語16〜30）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L3続き-B: interview〜social studies（15語）'},
+  {id:'et-l4a',subj:'英語たんけん隊',name:'Lesson 4-A（単語1〜15）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L4-A: get〜library（15語）'},
+  {id:'et-l4b',subj:'英語たんけん隊',name:'Lesson 4-B（単語16〜30）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L4-B: program〜does（15語）'},
+  {id:'et-l4c',subj:'英語たんけん隊',name:'Lesson 4-C（単語31〜45）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L4-C: send〜usually（15語）'},
+  {id:'et-l4d',subj:'英語たんけん隊',name:'Lesson 4-D（単語46〜60）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L4-D: by〜sea（15語）'},
+  {id:'et-l4e',subj:'英語たんけん隊',name:'Lesson 4-E（単語61〜75）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L4-E: from~to〜baby（15語）'},
+  {id:'et-l4f',subj:'英語たんけん隊',name:'Lesson 4-F（単語76〜90）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L4-F: walk〜tail（15語）'},
+  {id:'et-l4g',subj:'英語たんけん隊',name:'Lesson 4-G（単語91〜99）',type:'link',dl:'2026-08-28',dll:'8/28目標',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト','🔀 例文シャッフル','📝 例文テスト'],note:'L4-G: spend〜bird（9語）'},
+  {id:'et-weak',subj:'英語たんけん隊',name:'⚠️ 苦手ノート',type:'link',dl:'2026-08-28',dll:'定期的に',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['苦手ノートで間違い問題に挑戦','全問正解するまで繰り返す'],note:'間違えた問題を集中特訓！'},
+  // ── 英語たんけん隊 追加ミッション（はじめに・毎日サブ）──
+  {id:'et-i01',subj:'英語たんけん隊（はじめに）',name:'はじめに-1（1〜15語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'boy〜tired（15語）サブミッション'},
+  {id:'et-i02',subj:'英語たんけん隊（はじめに）',name:'はじめに-2（16〜30語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'hungry〜blackboard（15語）'},
+  {id:'et-i03',subj:'英語たんけん隊（はじめに）',name:'はじめに-3（31〜45語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'chalk〜math（15語）'},
+  {id:'et-i04',subj:'英語たんけん隊（はじめに）',name:'はじめに-4（46〜60語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'Japanese〜recorder（15語）'},
+  {id:'et-i05',subj:'英語たんけん隊（はじめに）',name:'はじめに-5（61〜75語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'dancing〜rugby（15語）'},
+  {id:'et-i06',subj:'英語たんけん隊（はじめに）',name:'はじめに-6（76〜90語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'dodge ball〜panda（15語）'},
+  {id:'et-i07',subj:'英語たんけん隊（はじめに）',name:'はじめに-7（91〜105語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'rabbit〜strawberry（15語）'},
+  {id:'et-i08',subj:'英語たんけん隊（はじめに）',name:'はじめに-8（106〜120語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'orange〜breakfast（15語）'},
+  {id:'et-i09',subj:'英語たんけん隊（はじめに）',name:'はじめに-9（121〜135語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'lunch〜rice（15語）'},
+  {id:'et-i10',subj:'英語たんけん隊（はじめに）',name:'はじめに-10（136〜150語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'cake〜box（15語）'},
+  {id:'et-i11',subj:'英語たんけん隊（はじめに）',name:'はじめに-11（151〜165語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'map〜ear（15語）'},
+  {id:'et-i12',subj:'英語たんけん隊（はじめに）',name:'はじめに-12（166〜180語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'eye〜pink（15語）'},
+  {id:'et-i13',subj:'英語たんけん隊（はじめに）',name:'はじめに-13（181〜195語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'red〜Wednesday（15語）'},
+  {id:'et-i14',subj:'英語たんけん隊（はじめに）',name:'はじめに-14（196〜210語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'Thursday〜December（15語）'},
+  {id:'et-i15',subj:'英語たんけん隊（はじめに）',name:'はじめに-15（211〜225語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'spring〜ten（15語）'},
+  {id:'et-i16',subj:'英語たんけん隊（はじめに）',name:'はじめに-16（226〜240語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'eleven〜fifty（15語）'},
+  {id:'et-i17',subj:'英語たんけん隊（はじめに）',name:'はじめに-17（241〜255語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'sixty〜eighth（15語）'},
+  {id:'et-i18',subj:'英語たんけん隊（はじめに）',name:'はじめに-18（256〜270語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'ninth〜thirtieth（15語）'},
+  {id:'et-i19',subj:'英語たんけん隊（はじめに）',name:'はじめに-19（271〜278語）',type:'link',dl:'2026-08-31',dll:'夏休み中',
+   url:'https://yachizo0707-star.github.io/eigo-tankentai/',
+   steps:['🔀 単語シャッフル','✏️ 単語テスト'],note:'fortieth〜thousandth（8語）'}
+];
+var state = {tasks:{},streak:0,lastCheck:null};
+function save(){try{localStorage.setItem('smr2',JSON.stringify(state));}catch(e){}}
+function load(){try{var d=JSON.parse(localStorage.getItem('smr2')||'null');if(d){state.tasks=d.tasks||{};state.streak=d.streak||0;state.lastCheck=d.lastCheck||null;}}catch(e){}}
+function getTask(id){if(!state.tasks[id])state.tasks[id]={sd:[],pd:0,done:false};return state.tasks[id];}
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function pad(n){return n<10?'0'+n:''+n;}
+function addDays(s,n){var d=new Date(s);d.setDate(d.getDate()+n);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function dBetween(a,b){var da=new Date(a),db=new Date(b);return Math.ceil((db-da)/86400000);}
+function fmtJP(s){var d=new Date(s),wd='日月火水木金土';return (d.getMonth()+1)+'月'+d.getDate()+'日（'+wd[d.getDay()]+'）';}
+function fmtS(s){var d=new Date(s);return (d.getMonth()+1)+'/'+d.getDate();}
+function getTotal(m){var t=0;if(!m.ranges)return 0;for(var i=0;i<m.ranges.length;i++)t+=m.ranges[i].e-m.ranges[i].s+1;return t;}
+function getPD(m){return getTask(m.id).pd||0;}
+function getLeft(m){return Math.max(0,getTotal(m)-getPD(m));}
+var GASSHUKU = {'2026-08-07':1,'2026-08-08':1};
+function dayWeight(ds){
+  if(GASSHUKU[ds]) return 0;
+  if(CLUBS[ds]) return 0.5;
+  return 1;
+}
+function calcEffDays(fromStr,toStr){
+  var total=0,d=new Date(fromStr);
+  var end=new Date(toStr);
+  while(d<end){
+    var ds=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+    total+=dayWeight(ds);
+    d.setDate(d.getDate()+1);
+  }
+  return total;
+}
+function getPerDay(m){
+  var left=getLeft(m);
+  if(left<=0) return 0;
+  var ts=todayStr();
+  var effDays=calcEffDays(ts,m.dl);
+  if(effDays<=0) return left;
+  return Math.ceil(left/effDays);
+}
+function getSmartHint(m){
+  if(m.type!=='pages') return '';
+  var left=getLeft(m);
+  if(left<=0) return '';
+  var ts=todayStr();
+  var ppd=getPerDay(m);
+  var hints=[];
+  // 合宿スキップ提案
+  var g7=GASSHUKU['2026-08-07'],g8=GASSHUKU['2026-08-08'];
+  if(g7||g8){
+    var gasshukuDays=(g7?1:0)+(g8?1:0);
+    var effWithout=calcEffDays(ts,'2026-08-07');
+    if(effWithout>0&&left>0){
+      var needByGasshuku=Math.ceil(left/effWithout);
+      if(needByGasshuku>ppd&&needByGasshuku<=ppd*3){
+        hints.push('🏕️ 今日<strong>'+needByGasshuku+'P</strong>やると合宿'+gasshukuDays+'日間はゼロでOK！');
+      }
+    }
+  }
+  // 次の部活スキップ提案
+  var nextClub='';
+  var tmp=new Date(ts);
+  tmp.setDate(tmp.getDate()+1);
+  for(var i=0;i<14;i++){
+    var ds=tmp.getFullYear()+'-'+pad(tmp.getMonth()+1)+'-'+pad(tmp.getDate());
+    if(CLUBS[ds]&&!GASSHUKU[ds]){nextClub=ds;break;}
+    tmp.setDate(tmp.getDate()+1);
+  }
+  if(nextClub){
+    var effToClub=calcEffDays(ts,nextClub);
+    if(effToClub>0){
+      var needByClub=Math.ceil(left/(calcEffDays(ts,m.dl)-0.5));
+      var skipAmt=Math.ceil(left/effToClub);
+      if(skipAmt>ppd&&skipAmt<=ppd*2.5){
+        var clubDate=fmtS(nextClub);
+        hints.push('🥁 今日<strong>'+skipAmt+'P</strong>やると'+clubDate+'の部活日はゼロでOK！');
+      }
+    }
+  }
+  if(!hints.length) return '';
+  return '<div class="smart-hint">'+hints.join('<br>')+'</div>';
+}
+function getSD(m){return getTask(m.id).sd||[];}
+function isDone(m){if(m.type==='done')return getTask(m.id).done;if(m.type==='pages')return getPD(m)>=getTotal(m);if(m.type==='steps'||m.type==='link')return getSD(m).length>=m.steps.length;return false;}
+function getPct(m){if(m.type==='done')return isDone(m)?100:0;if(m.type==='pages'){var t=getTotal(m);return t?Math.min(100,Math.round(getPD(m)/t*100)):0;}if(m.type==='steps'||m.type==='link')return Math.round(getSD(m).length/m.steps.length*100);return 0;}
+function urgency(m){if(isDone(m))return 'done';var d=dBetween(todayStr(),m.dl);if(d<=3)return 'red';if(d<=7)return 'orange';return 'ok';}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show';setTimeout(function(){t.className='toast';},2500);}
+function ptPop(msg){var el=document.createElement('div');el.className='pt-pop';el.textContent=msg;document.body.appendChild(el);setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},1500);}
+function showCov(txt,sub){document.getElementById('covText').textContent=txt;document.getElementById('covSub').textContent=sub||'';document.getElementById('cov').className='cov show';}
+document.getElementById('covBtn').onclick=function(){document.getElementById('cov').className='cov';};
+function updateStreak(){var ts=todayStr();if(state.lastCheck===ts)return;var yest=addDays(ts,-1);if(state.lastCheck===yest){state.streak++;}else if(state.lastCheck!==ts){state.streak=1;}state.lastCheck=ts;save();}
+function initStars(){var c=document.getElementById('SC'),ctx=c.getContext('2d');var W,H,stars=[];function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;stars=[];for(var i=0;i<100;i++)stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.2+0.3,a:Math.random(),da:(Math.random()-0.5)*0.005+0.003});}function draw(){ctx.clearRect(0,0,W,H);for(var i=0;i<stars.length;i++){var s=stars[i];s.a+=s.da;if(s.a>1||s.a<0.1)s.da*=-1;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle='rgba(200,220,255,'+s.a+')';ctx.fill();}requestAnimationFrame(draw);}try{resize();draw();}catch(e){}window.addEventListener('resize',resize);}
+var tabs=['t0','t1','t2','t3'],ntabs=['nt0','nt1','nt2','nt3'],renderers=[renderToday,renderCal,renderMissions,renderReport];
+function switchTab(n){
+  for(var i=0;i<tabs.length;i++){document.getElementById(tabs[i]).className='tab layer';document.getElementById(ntabs[i]).className='nav-tab';}
+  document.getElementById(tabs[n]).className='tab layer active';
+  document.getElementById(ntabs[n]).className='nav-tab active';
+  window.scrollTo(0,0);
+  renderers[n]();
+}
+document.getElementById('nt0').onclick=function(){switchTab(0);};
+document.getElementById('nt1').onclick=function(){switchTab(1);};
+document.getElementById('nt2').onclick=function(){switchTab(2);};
+document.getElementById('nt3').onclick=function(){switchTab(3);};
+function renderToday(){
+  var ts=todayStr(),tm=addDays(ts,1);
+  var de=dBetween(ts,S_END),dx=dBetween(ts,EXAM),d824=dBetween(ts,'2026-08-24');
+  var h='<div class="today-hd">';
+  h+='<div class="today-date">'+fmtJP(ts)+'</div>';
+  h+='<div class="today-title">夏休み大作戦</div>';
+  h+='<div class="cd-row">';
+  h+='<div class="cd-item"><div class="cd-num">'+Math.max(0,de)+'</div><div class="cd-label">夏休み残り</div></div>';
+  h+='<div class="cd-item"><div class="cd-num">'+Math.max(0,d824)+'</div><div class="cd-label">地図締切まで</div></div>';
+  h+='<div class="cd-item"><div class="cd-num">'+Math.max(0,dx)+'</div><div class="cd-label">始業式まで</div></div>';
+  h+='</div></div>';
+  h+=clubBannerH(ts,'今日');
+  h+=clubBannerH(tm,'明日');
+  h+='<div class="streak"><div style="font-size:26px;">🔥</div><div><div class="s-num">'+state.streak+'日連続！</div><div class="s-label">今日もやろう！</div></div></div>';
+  h+='<div class="sec-title">⚡ 今日のミッション</div>';
+  var shown={};
+  var displayList=[];
+
+  // ① ページ系4課題（固定）
+  var PAGE_IDS=['eng-txt','math-pre','math-geo','jp-txt'];
+  for(var pi=0;pi<PAGE_IDS.length;pi++){
+    for(var mi=0;mi<MSNS.length;mi++){
+      if(MSNS[mi].id===PAGE_IDS[pi]&&!isDone(MSNS[mi])){
+        displayList.push({m:MSNS[mi],d:dBetween(ts,MSNS[mi].dl)});
+        shown[PAGE_IDS[pi]]=true;
+        break;
+      }
+    }
+  }
+
+  // ② 英語たんけん隊 メイン：未完了の最初の1件
+  var etMainPrefixes=['et-l1','et-l2','et-l3','et-l4','et-weak'];
+  for(var ei=0;ei<MSNS.length;ei++){
+    var eid=MSNS[ei].id;
+    var isMain=false;
+    for(var ep=0;ep<etMainPrefixes.length;ep++){
+      if(eid.indexOf(etMainPrefixes[ep])===0){isMain=true;break;}
+    }
+    if(isMain&&!isDone(MSNS[ei])&&!shown[eid]){
+      displayList.push({m:MSNS[ei],d:dBetween(ts,MSNS[ei].dl)});
+      shown[eid]=true;
+      break;
+    }
+  }
+
+  // ③ 英語たんけん隊 はじめに：未完了の最初の1件
+  for(var ii=0;ii<MSNS.length;ii++){
+    if(MSNS[ii].id.indexOf('et-i')===0&&!isDone(MSNS[ii])&&!shown[MSNS[ii].id]){
+      displayList.push({m:MSNS[ii],d:dBetween(ts,MSNS[ii].dl)});
+      shown[MSNS[ii].id]=true;
+      break;
+    }
+  }
+
+  // ④ 残りを締切順で最大2件追加
+  var rest=[];
+  for(var ri=0;ri<MSNS.length;ri++){if(!isDone(MSNS[ri])&&!shown[MSNS[ri].id])rest.push({m:MSNS[ri],d:dBetween(ts,MSNS[ri].dl)});}
+  rest.sort(function(a,b){return a.d-b.d;});
+  for(var rj=0;rj<Math.min(2,rest.length);rj++)displayList.push(rest[rj]);
+  if(displayList.length===0){h+='<div class="empty">🎉 全ミッション完了！すごい！</div>';}
+  else{
+    for(var j=0;j<displayList.length;j++){
+      var m=displayList[j].m,dl=displayList[j].d,urg=urgency(m),pct=getPct(m);
+      var uc=dl<=3?'urg-red':dl<=7?'urg-orange':'';
+      var ut=dl<=3?'<span class="utag red">あと'+dl+'日</span>':dl<=7?'<span class="utag orange">あと'+dl+'日</span>':'';
+      h+='<div class="mission-card '+uc+'" data-id="'+m.id+'">';
+      h+='<div class="mc-subj">'+m.subj+ut+'</div>';
+      h+='<div class="mc-name">'+m.name+'</div>';
+      if(m.type==='pages'){
+        var ppd=getPerDay(m),lft=getLeft(m);
+        h+='<div class="mc-meta">今日の目標：<strong>'+ppd+'P</strong>　残り'+lft+'P</div>';
+        h+=getSmartHint(m);
+      } else if(m.type==='steps'){
+        h+='<div class="mc-meta">ステップ '+getSD(m).length+'/'+m.steps.length+'</div>';
+      } else if(m.type==='link'){
+        var nxt=m.steps[getSD(m).length]||'完了！';
+        h+='<div class="mc-meta">次：'+nxt+'　'+getSD(m).length+'/'+m.steps.length+'</div>';
+        h+='<a href="'+m.url+'" target="_blank" style="display:block;margin-top:8px;padding:9px;background:linear-gradient(135deg,#1D4ED8,#2563EB);color:#fff;border-radius:9px;text-align:center;font-size:13px;font-weight:800;text-decoration:none;">🔍 英語たんけん隊を開く</a>';
+      }
+      if(pct>0){var pc=urg==='red'?'red':urg==='orange'?'orange':'green';h+='<div class="pb"><div class="pb-bg"><div class="pb-fill '+pc+'" style="width:'+pct+'%"></div></div><div class="pb-text"><span>進捗</span><span>'+pct+'%</span></div></div>';}
+      h+='</div>';
+    }
+  }
+  document.getElementById('todayContent').innerHTML=h;
+  document.getElementById('todayContent').onclick=function(e){switchTab(2);};
+}
+function clubBannerH(ds,label){
+  var club=CLUBS[ds];
+  if(club){return '<div class="club-banner has-club"><div class="cb-icon">🥁</div><div><div class="cb-title">'+label+'は部活あり</div><div class="cb-sub">'+club.t+'　剣道場・サウンドルーム'+(club.n?'<br>'+club.n:'')+'</div></div></div>';}
+  var hint=label==='明日'?'まとまった勉強時間が取れるよ！':'今日は勉強に集中できる日！';
+  return '<div class="club-banner no-club"><div class="cb-icon">📖</div><div><div class="cb-title">'+label+'は部活なし</div><div class="cb-sub">'+hint+'</div></div></div>';
+}
+var calY=2026,calM=6;
+function renderCal(){
+  var mn=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var h='<div class="cal-hd"><button class="cal-nav" id="cPrev">◀</button><div class="cal-month">2026年'+mn[calM]+'</div><button class="cal-nav" id="cNext">▶</button></div>';
+  h+='<div class="cal-grid">';
+  var wd='日月火水木金土'.split('');
+  for(var i=0;i<7;i++)h+='<div class="cal-dow" style="'+(i===0?'color:var(--red)':i===6?'color:var(--blue)':'')+'">' +wd[i]+'</div>';
+  var fd=new Date(calY,calM,1).getDay(),dim=new Date(calY,calM+1,0).getDate(),ts=todayStr();
+  for(var p=0;p<fd;p++){var pd=new Date(calY,calM,1-fd+p);h+='<div class="cal-day other"><div class="cal-dn">'+pd.getDate()+'</div></div>';}
+  for(var d=1;d<=dim;d++){
+    var ds=calY+'-'+pad(calM+1)+'-'+pad(d);
+    var iT=ds===ts,iS=ds>=S_START&&ds<=S_END,hC=!!CLUBS[ds];
+    var hD=false,hG=false;
+    for(var ei=0;ei<EVTS.length;ei++){if(EVTS[ei].d===ds){if(EVTS[ei].c==='red')hD=true;if(EVTS[ei].c==='gold')hG=true;}}
+    var cls='cal-day';
+    if(iT)cls+=' is-today';else if(hD&&hC)cls+=' both';else if(hD)cls+=' has-dl';else if(hC)cls+=' has-club';else if(iS)cls+=' summer';
+    var dots='';
+    if(hD)dots+='<div class="cal-dot" style="background:var(--red)"></div>';
+    if(hC)dots+='<div class="cal-dot" style="background:var(--orange)"></div>';
+    if(hG)dots+='<div class="cal-dot" style="background:var(--gold)"></div>';
+    h+='<div class="'+cls+'" onclick="showDD(\''+ds+'\')" style="cursor:pointer;"><div class="cal-dn">'+d+'</div>'+(dots?'<div class="cal-dots">'+dots+'</div>':'')+'</div>';
+  }
+  h+='</div>';
+  h+='<div class="cal-legend"><div class="leg"><div class="leg-dot" style="background:var(--red)"></div>締切</div><div class="leg"><div class="leg-dot" style="background:var(--orange)"></div>部活</div><div class="leg"><div class="leg-dot" style="background:var(--gold)"></div>重要</div><div class="leg"><div class="leg-dot" style="background:var(--blue)"></div>今日</div></div>';
+  h+='<div class="day-detail" id="dd"><div class="dd-title" id="ddt"></div><div id="dde"></div></div>';
+  document.getElementById('calContent').innerHTML=h;
+  document.getElementById('cPrev').onclick=function(){calM--;if(calM<0){calM=11;calY--;}renderCal();};
+  document.getElementById('cNext').onclick=function(){calM++;if(calM>11){calM=0;calY++;}renderCal();};
+  // カレンダー日付クリックはcal-dayのonclickで処理
+}
+function showDD(ds){
+  var cl=CLUBS[ds],h='';
+  if(cl)h+='<div class="dd-ev"><div class="dd-dot" style="background:var(--orange)"></div><div>🥁 部活 '+cl.t+'　'+(cl.n?cl.n:'')+'</div></div>';
+  var ec={'red':'var(--red)','gold':'var(--gold)','blue':'var(--blue)','green':'var(--green)'};
+  for(var i=0;i<EVTS.length;i++){if(EVTS[i].d===ds)h+='<div class="dd-ev"><div class="dd-dot" style="background:'+ec[EVTS[i].c]+'"></div><div>'+EVTS[i].l+'</div></div>';}
+  for(var j=0;j<MSNS.length;j++){if(MSNS[j].dl===ds)h+='<div class="dd-ev"><div class="dd-dot" style="background:var(--red)"></div><div>締切：'+MSNS[j].subj+'「'+MSNS[j].name+'」</div></div>';}
+  if(!h)h='<div class="dd-ev"><div class="dd-dot" style="background:var(--text-sub)"></div><div>予定なし</div></div>';
+  document.getElementById('ddt').textContent=fmtJP(ds);
+  document.getElementById('dde').innerHTML=h;
+  document.getElementById('dd').className='day-detail show';
+}
+function renderMissions(){
+  var subjList=[],seen={};
+  for(var i=0;i<MSNS.length;i++){var s=MSNS[i].subj;if(!seen[s]){subjList.push(s);seen[s]=true;}}
+  var h='';
+  for(var si=0;si<subjList.length;si++){
+    var subj=subjList[si],ms=[];
+    for(var mi=0;mi<MSNS.length;mi++){if(MSNS[mi].subj===subj)ms.push(MSNS[mi]);}
+    var allD=true,anyD=false;
+    for(var di=0;di<ms.length;di++){if(!isDone(ms[di]))allD=false;else anyD=true;}
+    var bc=allD?'badge-done':anyD?'badge-prog':'badge-new';
+    var bt=allD?'✅ 完了':'進行中';
+    h+='<div class="subj-sec"><div class="subj-hd"><div class="subj-name">'+subj+'</div><div class="subj-badge '+bc+'">'+bt+'</div></div>';
+    for(var ti=0;ti<ms.length;ti++)h+=taskCardH(ms[ti]);
+    h+='</div>';
+  }
+  document.getElementById('missionContent').innerHTML=h;
+  bindTaskEv();
+}
+function findM(id){for(var i=0;i<MSNS.length;i++){if(MSNS[i].id===id)return MSNS[i];}return null;}
+function getTask(id){if(!state.tasks[id])state.tasks[id]={sd:[],pd:0,done:false,sdDates:{}};return state.tasks[id];}
+function getSD(m){return getTask(m.id).sd||[];}
+function tapStep(mid,si){
+  var m=findM(mid);if(!m)return;
+  var tk=getTask(mid),pos=tk.sd.indexOf(si);
+  var wasDone=isDone(m);
+  if(pos>=0){
+    tk.sd.splice(pos,1);
+    if(tk.sdDates)delete tk.sdDates[si];
+  }else{
+    tk.sd.push(si);
+    if(!tk.sdDates)tk.sdDates={};
+    tk.sdDates[si]=todayStr();
+    ptPop('+10pt');updateStreak();
+  }
+  save();renderMissions();renderToday();
+  if(!wasDone&&isDone(m)){showCov(m.subj+'「'+m.name+'」完了！','+50pt ボーナス！');ptPop('+50pt 🎉');}
+}
+function tapDone(mid){
+  var m=findM(mid);if(!m)return;
+  var tk=getTask(mid);
+  tk.done=!tk.done;
+  tk.doneDate=tk.done?todayStr():null;
+  if(tk.done){ptPop('+50pt 🎉');updateStreak();showCov(m.subj+'「'+m.name+'」完了！','');}
+  save();renderMissions();renderToday();
+}
+function tapRecord(mid){
+  var m=findM(mid);if(!m)return;
+  var inp=document.getElementById('pi-'+mid);if(!inp)return;
+  var val=parseInt(inp.value);
+  if(isNaN(val)||val<=0){showToast('ページ数を入力してね');return;}
+  var tk=getTask(mid),tot=getTotal(m);
+  tk.pd=Math.min(tot,tk.pd+val);
+  // 今日の記録を累積
+  var ts=todayStr();
+  if(!tk.pdToday)tk.pdToday={};
+  tk.pdToday[ts]=(tk.pdToday[ts]||0)+val;
+  inp.value='';
+  ptPop('+'+val+'pt');updateStreak();
+  var nowD=tk.pd>=tot;
+  save();renderMissions();renderToday();
+  if(nowD){showCov(m.subj+'「'+m.name+'」全ページ完了！','');ptPop('+50pt 🎉');}
+  else{showToast(val+'P 記録！残り'+getLeft(m)+'P');}
+}
+function taskCardH(m){
+  var done=isDone(m),urg=urgency(m),pct=getPct(m);
+  var dl=dBetween(todayStr(),m.dl);
+  var dlc=dl<=3?'var(--red)':dl<=7?'var(--orange)':'var(--text-sub)';
+  var dlT=dl<=3?'あと'+dl+'日<br>':'';
+  var body='';
+  if(m.type==='steps'){
+    var sd=getSD(m);
+    body='<div class="steps-wrap">';
+    for(var i=0;i<m.steps.length;i++){
+      var d2=sd.indexOf(i)>=0;
+      body+='<div class="step-item'+(d2?' sdone':'')+'" onclick="tapStep(\''+m.id+'\','+i+')" style="cursor:pointer;">';
+      body+='<div class="step-chk">'+(d2?'✓':'')+'</div>';
+      body+='<div class="step-lbl">'+m.steps[i]+'</div></div>';
+    }
+    body+='</div>';
+  } else if(m.type==='pages'){
+    var left=getLeft(m),ppd=getPerDay(m);
+    var pc=urg==='red'?'red':urg==='orange'?'orange':'green';
+    var effDaysLeft=calcEffDays(todayStr(),m.dl);
+    body+='<div class="pb"><div class="pb-bg"><div class="pb-fill '+pc+'" style="width:'+pct+'%"></div></div>';
+    body+='<div class="pb-text"><span>残り'+left+'P</span><span>'+pct+'%</span></div></div>';
+    body+='<div class="pg-hint">今日の目標：<strong>'+ppd+'P</strong>　（残り'+Math.floor(effDaysLeft)+'有効日で割ると'+ppd+'P/日）</div>';
+    body+=getSmartHint(m);
+    body+='<div class="pg-row">';
+    body+='<div class="pg-lbl">今日やった</div>';
+    body+='<input type="number" class="pg-in" id="pi-'+m.id+'" placeholder="0" min="0" inputmode="numeric">';
+    body+='<div class="pg-lbl">P</div>';
+    body+='<button class="pg-btn" onclick="tapRecord(\''+m.id+'\')" type="button">記録</button>';
+    body+='</div>';
+  } else if(m.type==='done'){
+    var d3=getTask(m.id).done;
+    body='<div class="done-toggle'+(d3?' on':'')+'" onclick="tapDone(\''+m.id+'\')" style="cursor:pointer;">';
+    body+='<div class="dt-icon">'+(d3?'✅':'⬜')+'</div>';
+    body+='<div class="dt-lbl">'+(d3?'完了！':'完了したらタップ')+'</div></div>';
+  } else if(m.type==='link'){
+    var sd2=getSD(m);
+    body='<a href="'+m.url+'" target="_blank" class="link-btn">🔍 英語たんけん隊を開く</a>';
+    body+='<div class="link-steps-done">';
+    for(var li=0;li<m.steps.length;li++){
+      var ld=sd2.indexOf(li)>=0;
+      body+='<div class="step-item'+(ld?' sdone':'')+'" onclick="tapStep(\''+m.id+'\','+li+')" style="cursor:pointer;">';
+      body+='<div class="step-chk">'+(ld?'✓':'')+'</div>';
+      body+='<div class="step-lbl">'+m.steps[li]+'</div></div>';
+    }
+    body+='</div>';
+  }
+  var h='<div class="task-card'+(done?' done-c':'')+'" id="tc-'+m.id+'">';
+  h+='<div class="task-top"><div class="task-name">'+m.name+'</div>';
+  h+='<div class="task-dl" style="color:'+dlc+'">'+dlT+'<span style="font-size:10px;">'+m.dll+'</span></div></div>';
+  if(m.note)h+='<div class="task-note">📝 '+m.note+'</div>';
+  h+=body+'</div>';
+  return h;
+}
+function bindTaskEv(){}
+function renderReport(){
+  var ts=todayStr();
+  var dH='';
+  for(var i=0;i<MSNS.length;i++){
+    var m=MSNS[i];
+    if(m.type==='pages'){
+      var tk0=getTask(m.id);
+      var todayP=(tk0.pdToday&&tk0.pdToday[ts])||0;
+      if(todayP>0){
+        var t=getTotal(m),p=getPD(m),pct=Math.min(100,Math.round(p/t*100));
+        dH+='<div class="rpt-done-item"><div>📖</div><div>'+m.subj+'「'+m.name+'」今日'+todayP+'P（累計'+p+'P / 全体'+pct+'%）</div></div>';
+      }
+    } else if((m.type==='steps'||m.type==='link')&&getSD(m).length>0){
+      // 今日チェックしたステップだけカウント
+      var tk=getTask(m.id);
+      var todayChecked=0;
+      var sd=getSD(m);
+      for(var si=0;si<sd.length;si++){
+        var checkDate=tk.sdDates?tk.sdDates[sd[si]]:'';
+        if(checkDate===ts)todayChecked++;
+      }
+      if(todayChecked>0){
+        var icon=m.type==='link'?'🔍':'✅';
+        dH+='<div class="rpt-done-item"><div>'+icon+'</div><div>'+m.subj+'「'+m.name+'」今日'+todayChecked+'ステップ完了（全'+sd.length+'/'+m.steps.length+'）</div></div>';
+      }
+    } else if(m.type==='done'&&getTask(m.id).done&&getTask(m.id).doneDate===ts){
+      dH+='<div class="rpt-done-item"><div>🎉</div><div>'+m.subj+'「'+m.name+'」完了！</div></div>';
+    }
+  }
+  if(!dH)dH='<div class="rpt-none">まだ記録なし。ミッションタブからやったことを入力しよう！</div>';
+  var rem=[],allD=true;
+  for(var j=0;j<MSNS.length;j++){if(!isDone(MSNS[j])){rem.push(MSNS[j]);allD=false;}}
+  rem.sort(function(a,b){
+    // 英語たんけん隊は末尾
+    var aEt=(a.id.indexOf('et-')===0)?1:0;
+    var bEt=(b.id.indexOf('et-')===0)?1:0;
+    if(aEt!==bEt)return aEt-bEt;
+    // それ以外は締切順
+    return dBetween(ts,a.dl)-dBetween(ts,b.dl);
+  });
+  var rH='';
+  for(var ri=0;ri<rem.length;ri++){
+    var rm=rem[ri],dl=dBetween(ts,rm.dl);
+    var dc=dl<=3?'var(--red)':dl<=7?'var(--orange)':'var(--text-sub)';
+    var det='';
+    if(rm.type==='pages'){
+      var lft=getLeft(rm),ppd=getPerDay(rm);
+      det='<div class="rpt-rem-detail">残り'+lft+'P ／ あと'+dl+'日</div><span class="rpt-perday">→ 1日'+ppd+'Pずつやれば間に合う！</span>';
+    } else if(rm.type==='steps'){
+      var doneC=getSD(rm).length,nextS=rm.steps.slice(doneC);
+      det='<div class="rpt-rem-detail">残りステップ'+(rm.steps.length-doneC)+'個 ／ あと'+dl+'日</div><div class="rpt-steps">';
+      for(var ni=0;ni<nextS.length&&ni<3;ni++)det+='<span class="rpt-stag'+(ni===0?' next':'')+'">'+nextS[ni]+'</span>';
+      det+='</div>';
+    } else {det='<div class="rpt-rem-detail">あと'+dl+'日</div>';}
+    rH+='<div class="rpt-rem-item"><div class="rpt-rem-top"><div class="rpt-rem-name">'+rm.subj+'「'+rm.name+'」</div><div class="rpt-rem-dl" style="color:'+dc+'">'+rm.dll+'</div></div>'+det+'</div>';
+  }
+  if(!rH)rH='<div class="rpt-none">🎉 全部の宿題が終わった！</div>';
+  var h='<div class="rpt-wrap"><div class="rpt-hd"><div class="rpt-hd-date">'+fmtJP(ts)+'</div><div class="rpt-hd-title">📋 今日の勉強レポート</div><div class="rpt-hd-sub">🔥 '+state.streak+'日連続チェック中！</div></div><div class="rpt-sec"><div class="rpt-sec-lbl">✨ 今日やったこと</div>'+dH+'</div><div class="rpt-sec"><div class="rpt-sec-lbl">📌 残りの宿題</div>'+rH+'</div></div>';
+  if(allD)h+='<div style="background:linear-gradient(135deg,var(--green-dim),#001A10);border:1px solid var(--green);border-radius:var(--radius);padding:16px;text-align:center;margin-bottom:12px;"><div style="font-size:36px;">🏆</div><div style="font-size:15px;font-weight:900;color:var(--green);">全ミッションコンプリート！！</div></div>';
+  h+='<div class="line-hint"><div class="line-icon">📱</div><div class="line-text">スクショしてLINEで送ろう！</div><div class="line-sub">ホームボタン＋電源ボタン → LINEで共有</div></div>';
+  document.getElementById('reportContent').innerHTML=h;
+}
+load();
+try{initStars();}catch(e){}
+renderToday();
+renderCal();
+</script>
+</body>
+</html>
